@@ -2,21 +2,24 @@
 use strict;
 use POSIX;
 
+
+#written by Crystal Humphries and adapted library MSS
+#the library MSS was written by Max Robinson and Nigel Clegg
+
+
 open my $fh, $ARGV[0];
-my $x = "T";
 chomp(my @array = <$fh>);
 
 my $start_pos = $array [0];
 my @result =  create_vector(@array);
 
-if ($x eq "T"){
-    print_header();
-    my $outLR = mss(\@result);
-    for my $lr (@{$outLR}) {
-	my ($blk_start, $blk_end) = get_positions($lr->[0], $lr->[1]);
-	print join("\t", $blk_start, $blk_end, $lr->[2])."\n";
-    }
+print_header();
+my $outLR = mss(\@result);
+for my $lr (@{$outLR}) {
+    my ($blk_start, $blk_end) = get_positions($lr->[0], $lr->[1]);
+    print join("\t", $blk_start, $blk_end, $lr->[2])."\n";
 }
+
 
 
 sub get_positions{
@@ -135,6 +138,10 @@ sub create_vector{
 ###negative -B is), the more stringent the clustering and the
 ###smaller the clusters of features will be.
 ######################################################################
+
+
+#Written by Max Robinson and Nigel Clegg
+
 sub mss {
     my ($scoreLR) = @_;
     my $scores  = scalar @{$scoreLR};
