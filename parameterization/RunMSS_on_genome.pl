@@ -2,10 +2,8 @@
 use strict;
 use POSIX;
 
-
 #written by Crystal Humphries and adapted library MSS
 #the library MSS was written by Max Robinson and Nigel Clegg
-
 
 open my $fh, $ARGV[0];
 chomp(my @array = <$fh>);
@@ -17,10 +15,12 @@ print_header();
 my $outLR = mss(\@result);
 for my $lr (@{$outLR}) {
     my ($blk_start, $blk_end) = get_positions($lr->[0], $lr->[1]);
-    print join("\t", $blk_start, $blk_end, $lr->[2])."\n";
+    my $score = $lr->[2];
+    if ($score >3){
+	my $bin_dist = $blk_end - $blk_start;
+	print join("\t", $blk_start, $blk_end, $lr->[2], $bin_dist)."\n";
+    }
 }
-
-
 
 sub get_positions{
     my ($begin, $end) = @_;
@@ -34,7 +34,7 @@ sub print_header{
     my $username = $ENV{LOGNAME} || $ENV{USER} || getpwuid($<);
     print "## $now_string\n";
     print "## $username\n";
-    print join("\t", "Start", "Stop", "SegmentScore")."\n";
+    print join("\t", "Start", "Stop", "SegmentScore", "BinSize")."\n";
 }
 
 sub create_vector{
@@ -54,7 +54,7 @@ sub create_vector{
     }
     my $array_distance = $begin - $start;
     $array_distance++;
-    print "Error in distance\n" unless ($array_distance==scalar(@new_vector));
+    print "Error in distance: distance based off input array->$array_distance\t vector calculated->".scalar(@new_vector)."\n" unless ($array_distance==scalar(@new_vector));
     return (@new_vector);
 }
 		
