@@ -2,6 +2,12 @@
 $|=1;
 use strict;
 
+##########################################################################
+# objecive: to determine if a file exists and whether you can            #
+# read the WGS files/indexes from a list of WGS                          #
+##########################################################################
+
+
 print_warning() and die  unless ((scalar(@ARGV)==2) and (-e $ARGV[0]) and ($ARGV[1]=~m/wgs|index/i));
 
 #grabs list of sample names
