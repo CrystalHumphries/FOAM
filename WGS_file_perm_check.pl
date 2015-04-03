@@ -2,11 +2,11 @@
 $|=1;
 use strict;
 
+print_warning() and die  unless ((scalar(@ARGV)==2) and (-e $ARGV[0]) and ($ARGV[1]=~m/wgs|index/i));
+
 #grabs list of sample names
 my $wanted_samples = grab_list($ARGV[0]); 
 
-my @CHROM = split(/,/, $ARGV[1]);
- 
 #grabs only the sample ids that have a genome.rcf.gz file
 my $fgs = "/40TB_3/gestalt/private/IndividualGenomeAssembly/";
 my($sp, $ind_dir) = identifyGenomes_list($wanted_samples, $fgs);
@@ -16,22 +16,16 @@ my @ind = sort keys %{$sp}; #individual ids
 my $count = scalar(@ind);
 print "Number of Individual Files: $count\n";
 
-
-foreach my $chr (@CHROM){
-    my $chrom = "chr".$chr;
-    my $n = 0;
-    foreach my $ind (@ind){
-	my $file  = "$ind_dir->{$ind}Genotype.rcf.gz";
-	my $e_gen = my $r_gen = my $e_index = my $r_index = "noAccess";
-	$e_gen = "FileExists"   if (-e $file);
-	$r_gen =  "CanRead"      if (-r $file);
-#	print join("\t", $file, $e_gen, $r_gen)."\n";
-	my $index = check_index($file);
-	$e_index = "FileExists" if (-e $index);
-	$r_index = "CanRead"    if (-r $index);
-#	my $V    = index_version($index);
-	print join("\t", $index, $e_index, $r_index)."\n";
-    }
+foreach my $ind (@ind){
+    my $file  = "$ind_dir->{$ind}Genotype.rcf.gz";
+    my $e_gen = my $r_gen = my $e_index = my $r_index = "noAccess";
+    $e_gen = "FileExists"   if (-e $file);
+    $r_gen =  "CanRead"      if (-r $file);
+    my $index = check_index($file);
+    $e_index = "FileExists" if (-e $index);
+    $r_index = "CanRead"    if (-r $index);
+    print join("\t", $file, $e_gen, $r_gen)."\n"  if ($ARGV[1]=~m/wgs/i);
+    print join("\t", $index, $e_index, $r_index)."\n"  if ($ARGV[1]=~m/index/i);
 }
 
 sub check_index{
@@ -58,8 +52,16 @@ sub index_version{
     return($flag);
 }
 
+sub print_warning{
+    print<<EOF;
+
+    print WGS_file_perm_check.pl <file_with genomes> <wgs|index|wgsindex>
+
+EOF
+}
+
 sub grab_list{
-    # grabs file containing list of sample_ids and returns list as referenced array
+    # grabs pipeline version of CGI genome
     my $file = shift;
     open (my $list, $file) || die "Could not open $file\n";
     my @samples;
@@ -76,7 +78,7 @@ sub identifyGenomes_list {
     my($fgs) = @_;
     my(%sp, %dir);
 
-    #grabs samples from directory, looks further into samples from list, and 
+    #grabs samples from directory and checks whether file exists
     #returns list of samples that have a genome.vcf.gz file
     foreach my $sample (@{$list}){
 	chomp ($sample);
@@ -88,22 +90,5 @@ sub identifyGenomes_list {
 	}
     }
     return (\%sp, \%dir);
-}
-
-########
-sub fulldirlist {
-	my($dir) = @_;
-	opendir (DIR, $dir);
-	my @files = grep /^[^.]/, readdir DIR;
-	closedir DIR;
-	return @files;
-}
-
-sub slicedirlist {
-	my($dir, $pat) = @_;
-	opendir (DIR, $dir);
-	my @files = grep /$pat/, readdir DIR;
-	closedir DIR;
-	return @files;
 }
 
