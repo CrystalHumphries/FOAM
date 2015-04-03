@@ -63,7 +63,7 @@ foreach my $chr (@CHROM){
     if (($chr<= 20) and ($chr!~m/X|Y/i)){
         undef (@interval);
         $end   = $chr_lengths{$chr};
-        my $interval = ($end - $start + 1)/20;
+        my $interval = $end/20;
         for my $int (1..20){
             push (@interval, int($int*$interval));
         }
