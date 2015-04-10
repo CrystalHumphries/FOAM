@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 $|=1;
 use strict;
-use Storable;
 use lib "/proj/famgen/resources/FAVA";
 use FAVA;
 use POSIX qw(strftime);
