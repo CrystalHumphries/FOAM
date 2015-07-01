@@ -1,0 +1,5 @@
+#jan 8, 2015
+
+changed rare.pl
+	-calculate the average CADD score (only have scores for those with a scaled score of >5) 
+	-calculate the average amount of FAVA impacting scores are nearby
