@@ -3,30 +3,49 @@ use warnings;
 use strict;
 use List::Util qw(sum);
 
-
-my $file = $ARGV[0];
-print $file."\n";
-
 my $tabix = `which tabix`;
 chomp($tabix);
 
-open TBX,"$tabix $file chr22:0-90000000 |  awk '{ if (\$5!~/\\./) print}' |" || die "Could not open $file\n";
-my ($oldPos);
-my @distance;
-my $n = 0;
+sub get_average_dist{
+    my ($file, $query) = @_;
+    open TBX,"$tabix $file $query |  awk '{ if (\$5!~/\\./) print}' |" || die "Could not open $file\n";
+    my ($oldPos);
+    my @distance;
+    my $n = 0;
 
-while(my $line = <TBX>){
-    chomp ($line);
-    my (undef, $pos) = split(/\t/, $line);
-    $n++;
-    if ($n >1){
-	my $dist = $pos - $oldPos;
-	push (@distance, $dist);
+    while(my $line = <TBX>){
+	chomp ($line);
+	my (undef, $pos) = split(/\t/, $line);
+	$n++;
+	if ($n >1){
+	    my $dist = $pos - $oldPos;
+	    push (@distance, $dist);
+	}
+	$oldPos = $pos;
     }
-    $oldPos = $pos;
+
+    my $sum = sum (@distance);
+    my $avg_dist = $sum / $n;
+    
+    return($sum, $avg_dist);
 }
 
-my $sum = sum (@distance);
-print "Sum: $sum\n";
-my $avg_dist = $sum / $n;
-print "Distance: $avg_dist \n";
+
+open my $fh, $ARGV[0] || die "cannot open $ARGV[0]";
+my $chr = $ARGV[1];
+my $query = $chr.":0-9000000000";
+
+#create file to write results to
+my $new_file = $chr."_distance_avg.txt";
+open NFH, '>', $new_file;
+
+while (my $WGS = <$fh>) {
+    chomp $WGS;
+    my @dir_struct = split(/\//, $WGS); 
+    my $main_file  = $dir_struct[-1];
+    $main_file     =~s/\.genome\.vcf\.gz//g;
+    my ($sum, $avg_d) = get_average_dist($WGS, $query);
+    print NFH join("\t", $main_file, $sum, $avg_d)."\n";
+}
+
+close(NFH);
